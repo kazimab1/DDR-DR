@@ -1,0 +1,25 @@
+# Shared settings for Track A (DR grading). A run file only lists what differs.
+task: grading
+run_name: base            # every run file sets its own
+data:
+  train_csv: data/splits/grading_train.csv
+  val_csv: data/splits/grading_val.csv
+  image_size: 512         # must match `prepare grading --size`
+model:
+  name: efficientnet_b0   # timm model name; efficientnet_b3 also works
+  pretrained: true
+train:
+  epochs: 30
+  batch_size: 16
+  lr: 0.0003
+  seed: 42
+  num_workers: 4
+  amp: true               # mixed precision, only used on GPU
+  patience: 10            # early stop after this many epochs without val improvement
+  out_dir: outputs/runs
+eval:
+  batch_size: 32
+imbalance:
+  sampler: none           # none | oversample | undersample
+  loss: ce                # ce | weighted_ce | focal
+  strong_aug_minority: false

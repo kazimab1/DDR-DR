@@ -1,0 +1,15 @@
+# Versions this project was developed and tested with (Python 3.11).
+# On a GPU machine/Colab/Kaggle, install the CUDA build of torch first if pip picks the wrong one:
+#   https://pytorch.org/get-started/locally/
+torch==2.14.1
+torchvision==0.29.1
+timm==1.0.30
+segmentation-models-pytorch==0.5.0
+numpy==2.4.6
+pandas==3.0.6
+scikit-learn==1.9.1
+pillow==12.3.0
+matplotlib==3.11.2
+pyyaml==6.0.1
+tqdm==4.70.1
+pytest==9.1.1          # only for `python -m pytest tests`

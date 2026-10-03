@@ -1,0 +1,21 @@
+# Data: raw + processed images are large; split CSVs ARE committed (frozen splits)
+data/raw/*
+data/processed/*
+data/smoke/
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# Run outputs: keep config/history/metrics, drop heavy weights and figures cache
+outputs/runs/**/*.pt
+outputs/runs/**/*.pth
+outputs/figures/
+*.pt
+*.pth
+
+# Python / tooling
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.venv/
+venv/
+.DS_Store

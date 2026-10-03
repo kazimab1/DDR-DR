@@ -1,0 +1,5 @@
+inherit: base.yaml
+run_name: g5_oversample_aug
+imbalance:
+  sampler: oversample
+  strong_aug_minority: true

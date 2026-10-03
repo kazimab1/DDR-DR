@@ -1,0 +1,8 @@
+# Optional final run: best loss + lesion-aware crops (default below = S3 + S5).
+# Edit `loss` after you have looked at the validation table, then run it by hand:
+#   python -m src.train --config configs/segmentation/combined.yaml
+inherit: base.yaml
+run_name: s6_combined
+imbalance:
+  loss: bce_dice
+  lesion_crop_prob: 0.7

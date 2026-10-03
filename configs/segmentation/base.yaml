@@ -1,0 +1,30 @@
+# Shared settings for Track B (lesion segmentation). A run file only lists what differs.
+task: segmentation
+run_name: base
+data:
+  train_csv: data/splits/seg_train.csv
+  val_csv: data/splits/seg_val.csv
+  crop_size: 512          # training crops cut from the 1024 px images; validation uses the full image
+model:
+  arch: unet
+  encoder: resnet34
+  pretrained: true
+train:
+  epochs: 60              # one epoch = one random crop per training image
+  batch_size: 8
+  lr: 0.0003
+  seed: 42
+  num_workers: 4
+  amp: true
+  patience: 15
+  out_dir: outputs/runs
+eval:
+  batch_size: 2           # full 1024 px images
+  threshold: 0.5          # for Dice / IoU (AUPR needs no threshold)
+imbalance:
+  loss: bce               # bce | weighted_bce | dice | bce_dice | tversky
+  lesion_crop_prob: 0.0   # share of crops centred on a lesion (0 = uniform random crops)
+  pos_weight_power: 0.5   # weighted_bce: pos_weight = (background/lesion pixels) ** power; 1.0 = literal ratio
+  pos_weight_max: 100     # upper limit for weighted_bce
+  tversky_alpha: 0.3      # weight of false positives
+  tversky_beta: 0.7       # weight of false negatives (missed lesion pixels)

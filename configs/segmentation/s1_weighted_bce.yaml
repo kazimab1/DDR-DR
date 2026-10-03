@@ -1,0 +1,4 @@
+inherit: base.yaml
+run_name: s1_weighted_bce
+imbalance:
+  loss: weighted_bce

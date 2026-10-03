@@ -1,0 +1,8 @@
+# Optional final run: best sampler + best loss from G1-G5 (default below = G2 + G4).
+# Edit the two lines after you have looked at the validation table, then run it by hand:
+#   python -m src.train --config configs/grading/combined.yaml
+inherit: base.yaml
+run_name: g6_combined
+imbalance:
+  sampler: oversample
+  loss: focal

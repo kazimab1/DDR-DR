@@ -1,0 +1,4 @@
+inherit: base.yaml
+run_name: g1_class_weights
+imbalance:
+  loss: weighted_ce

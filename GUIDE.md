@@ -209,3 +209,32 @@ python -m src.compare  --track grading --split aptos
 * **AUPR** (segmentation, mean over EX/HE/MA/SE picks the winner): area under the precision-recall curve over all pixels, the standard
   measure in DDR/IDRiD papers. Reported per lesion with Dice and IoU at threshold 0.5.
 * **Validation images are segmented at full 1024 px**; only training uses 512 px crops.
+
+---
+
+## File reference: what each file contains
+
+| File | Contains | Used in step |
+|---|---|---|
+| `requirements.txt` | Pinned library versions | 0 |
+| `configs/<track>/base.yaml` | All shared settings of a track: CSV paths, model, epochs, batch size, lr, seed, imbalance defaults | 4-6 |
+| `configs/<track>/g*.yaml`, `s*.yaml` | One run each; lists only the `imbalance:` setting that differs from `base.yaml` | 4-6 |
+| `configs/<track>/combined.yaml` | Optional final run (best sampler + best loss); edit before running | 6 |
+| `src/utils.py` | Config loading (`inherit:`, `--set` overrides, seed suffix), seeding, logger, shared constants | all |
+| `src/prepare.py` | `inspect` / `grading` / `segmentation` commands: find raw files, crop and resize, drop ungradable, write frozen split CSVs, external-set mode | 1, 3, 8 |
+| `src/explore.py` | Dataset statistics and thesis figures (class counts, lesion pixel share, sample grids, duplicates, unreadable files) | 2 |
+| `src/data.py` | `GradingDataset`, `SegmentationDataset`, augmentations (eval data gets resize + normalise only) | 4-8 |
+| `src/imbalance.py` | The strategies: oversampling, undersampling, weighted CE, focal, weighted BCE, Dice, BCE+Dice, Tversky, lesion-aware crops | 5 |
+| `src/models.py` | `build_classifier` (EfficientNet-B0) and `build_segmenter` (U-Net/ResNet34) | 4-8 |
+| `src/train.py` | One training script for both tracks; validates every epoch, saves `best.pt`, early stopping, writes the run folder | 4-5 |
+| `src/evaluate.py` | All metrics; CLI to score a saved run on val, test, or an external CSV (test/external once per run) | 6-8 |
+| `src/compare.py` | Collects every run's metrics into one sorted table, CSV and dot-plot per track | 6-7 |
+| `scripts/run_grading_all.sh`, `run_seg_all.sh` | Loop over all configs of a track; skip finished runs; `SEEDS="42 43 44"` for repeats | 5 |
+| `scripts/smoke_test.sh`, `make_fake_data.py` | End-to-end dry run on synthetic data | 0 |
+| `tests/test_core.py` | Unit checks of AUPR, samplers, crops, mask alignment, splits | 0 |
+| `data/raw/` | Extracted Kaggle files, never edited (git-ignored) | 1 |
+| `data/processed/` | Cropped and resized image cache (git-ignored) | 3 |
+| `data/splits/*.csv` | Frozen split lists; commit these | 3 |
+| `outputs/figures/` | Exploration charts and tables | 2 |
+| `outputs/runs/<run>/` | `config.yaml` (exact config), `best.pt`, `history.csv`, `train.log`, `val_metrics.json`, later `test_metrics.json` and external `<tag>_metrics.json` | 4-8 |
+| `outputs/comparison_<track>_<split>.csv/.png` | Comparison tables and charts | 6-7 |

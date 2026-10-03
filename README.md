@@ -34,7 +34,30 @@ python -m src.evaluate --run outputs/runs/<winner> --split test        # once
 
 ## What is compared
 
+### The two tracks at a glance
+
+| | **Track A: DR grading** | **Track B: Lesion segmentation** |
+|---|---|---|
+| Task | Classify DR severity (5 classes, grades 0-4) | Pixel masks for 4 lesions: EX, HE, MA, SE |
+| Dataset (Kaggle) | `mariaherrerot/ddrdataset` (about 13.7k images; official split 6,835 / 2,733 / 4,105) | `sunfish141/ddr-segmentation` (757 images; official split 383 / 149 / 225) |
+| Preprocessing | Crop border, resize to 512 px | Crop border, resize to 1024 px, train on 512 px crops |
+| Model (fixed for all runs) | EfficientNet-B0, ImageNet-pretrained (`timm`) | U-Net with ResNet34 encoder, ImageNet-pretrained |
+| Output | 5 logits | 4 sigmoid channels |
+| Winner picked by (validation) | Quadratic weighted kappa (QWK) | Mean AUPR over the 4 lesions |
+| Also reported | Macro-F1, per-class recall, confusion matrix, accuracy, AUC for referable DR (grade >= 2) | Per-lesion AUPR, Dice, IoU |
+
+### Where each model is tested
+
+| Stage | Data | What is evaluated |
+|---|---|---|
+| Model selection | DDR **validation** split | All runs (G0-G5, S0-S5), optionally repeated with seeds 42/43/44 |
+| Final test | DDR **test** split, used once | The winner and the baseline of each track |
+| External check | IDRiD (both tracks), APTOS 2019 and Messidor-2 (grading only) | The frozen winners, with no retraining |
+
+### Imbalance strategies
+
 Strategies act on the **training split only**; validation and test keep their natural class balance.
+In every run only the imbalance strategy changes (model, image size, epochs, augmentation and seed stay fixed).
 
 **Track A, grading (class imbalance)**
 

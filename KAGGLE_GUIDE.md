@@ -6,6 +6,9 @@ and persistence differ. Read `GUIDE.md` for *why* each step exists. This file is
 > Written from Kaggle's documented behaviour, **not tested on Kaggle**: menu names and limits change, so trust what you see on screen
 > over this file if they disagree. The code itself was tested locally on synthetic data (`scripts/smoke_test.sh`).
 
+> **Shortcut:** `notebooks/kaggle_ddr.ipynb` does Steps 1-6 below automatically for one track (set `TRACK` in its first code cell, attach the dataset, Run All).
+> This guide explains what it does and covers the manual steps (test split, external sets, seeds).
+
 ## What Kaggle changes
 
 | Topic | Kaggle behaviour | What to do |

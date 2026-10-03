@@ -11,6 +11,7 @@ Each track trains a baseline, then **one run per imbalance strategy** where *onl
 the validation split, and evaluates it **once** on the untouched test split and on an external dataset.
 
 > **New here? Follow [`GUIDE.md`](GUIDE.md)**, the step-by-step walkthrough from empty folder to thesis tables.
+> Running on Kaggle notebooks? Use [`KAGGLE_GUIDE.md`](KAGGLE_GUIDE.md) instead.
 
 ## Quick start
 

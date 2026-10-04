@@ -63,10 +63,14 @@ def lesion_of(path):
     return None
 
 
-def read_grade_labels(src):
-    """Labels from train/valid/test .txt ('name grade' lines) or from CSV files."""
+def read_grade_labels(src, label_files=None):
+    """Labels from train/valid/test .txt ('name grade' lines) or from CSV files.
+
+    `label_files` (CSV paths) restricts the search to exactly those files. Use it for external sets:
+    e.g. APTOS also ships sample_submission.csv with a dummy all-zero `diagnosis` column.
+    """
     rows = []
-    for f in sorted(src.rglob("*.txt")):
+    for f in ([] if label_files else sorted(src.rglob("*.txt"))):
         split = SPLIT_NAMES.get(f.stem.lower())
         if split is None:
             continue
@@ -78,7 +82,7 @@ def read_grade_labels(src):
         return pd.DataFrame(rows, columns=["stem", "grade", "split"])
 
     frames = []
-    for f in sorted(src.rglob("*.csv")):
+    for f in (label_files or sorted(src.rglob("*.csv"))):
         try:
             df = pd.read_csv(f)
         except Exception:
@@ -101,10 +105,12 @@ def read_grade_labels(src):
     return pd.concat(frames, ignore_index=True) if frames else None
 
 
-def discover_grading(src):
+def discover_grading(src, label_files=None):
     """-> DataFrame[stem, path, grade, split]; split is None when not official."""
     images = {p.stem: p for p in sorted(src.rglob("*")) if p.suffix.lower() in IMG_EXT}
-    labels = read_grade_labels(src)
+    labels = read_grade_labels(src, label_files)
+    if labels is None and label_files:
+        sys.exit(f"No image-name + grade columns found in {[str(f) for f in label_files]}.")
     if labels is None:  # last resort: images sitting in folders named 0,1,2,3,4,5
         rows = [(p.stem, int(p.parent.name)) for p in images.values() if p.parent.name.isdigit()]
         labels = pd.DataFrame(rows, columns=["stem", "grade"]).assign(split=None)
@@ -228,7 +234,7 @@ def run_grading(args):
     src = Path(args.src)
     out_csv = csv_paths(args, "grading")
     check_frozen(out_csv, args.force)
-    df = discover_grading(src)
+    df = discover_grading(src, [Path(f) for f in args.labels] if args.labels else None)
     print(f"  grade counts before filtering: {dict(sorted(Counter(df['grade']).items()))}")
     dropped = (~df["grade"].between(0, 4)).sum()
     df = df[df["grade"].between(0, 4)]  # grade 5 = ungradable -> dropped
@@ -329,6 +335,7 @@ def main():
     ap.add_argument("--name", default=None, help="dataset name (default: grading / ddr)")
     ap.add_argument("--size", type=int, default=None, help="output size (default 512 grading, 1024 segmentation)")
     ap.add_argument("--external", action="store_true", help="external test set: one CSV, no split")
+    ap.add_argument("--labels", nargs="+", help="grading only: CSV file(s) holding the labels (recommended for external sets)")
     ap.add_argument("--out-dir", default="data/processed")
     ap.add_argument("--splits-dir", default="data/splits")
     ap.add_argument("--force", action="store_true", help="overwrite frozen split CSVs")

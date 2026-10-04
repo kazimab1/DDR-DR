@@ -139,3 +139,20 @@ def test_stratified_split_explains_itself_when_a_class_is_too_small(tmp_path):
            "--out-dir", str(tmp_path / "proc"), "--splits-dir", str(tmp_path / "splits")]
     result = subprocess.run(cmd, capture_output=True, text=True)
     assert result.returncode != 0 and "need >= 10 images per class" in result.stderr
+
+
+def test_labels_option_ignores_dummy_label_files_like_aptos_sample_submission(tmp_path):
+    src = tmp_path / "aptos"
+    (src / "train_images").mkdir(parents=True)
+    (src / "test_images").mkdir()
+    for name, folder in (("a1", "train_images"), ("a2", "train_images"), ("t1", "test_images"), ("t2", "test_images")):
+        Image.new("RGB", (24, 24), (90, 40, 20)).save(src / folder / f"{name}.png")
+    (src / "train.csv").write_text("id_code,diagnosis\na1,3\na2,4\n")
+    (src / "sample_submission.csv").write_text("id_code,diagnosis\nt1,0\nt2,0\n")   # dummy labels, must not be used
+    cmd = [sys.executable, "-m", "src.prepare", "grading", "--src", str(src), "--size", "16", "--external",
+           "--out-dir", str(tmp_path / "proc"), "--splits-dir", str(tmp_path / "splits"),
+           "--labels", str(src / "train.csv")]
+    assert subprocess.run(cmd, capture_output=True).returncode == 0
+    import pandas as pd
+    out = pd.read_csv(next((tmp_path / "splits").glob("ext_*_grading.csv")))
+    assert sorted(out["grade"]) == [3, 4] and len(out) == 2

@@ -172,6 +172,28 @@ Single seed (42) only: g2_oversample 0.899, g5_oversample_aug 0.896, g3_undersam
 
 Single seed (42) only: s2_dice 0.370, s3_bce_dice 0.360.
 
+### Test results, Track A grading (stratified 70/15/15 test split of 1,879 images; mean +/- std over seeds 42, 43, 44)
+
+Winner `g4_focal` and baseline `g0_baseline`, each scored once per run on the test split.
+
+| Metric | g0_baseline | g4_focal (winner) |
+|---|---|---|
+| QWK (main) | 0.902 +/- 0.008 | **0.911 +/- 0.007** |
+| Macro-F1 | 0.734 +/- 0.021 | 0.751 +/- 0.012 |
+| Accuracy | 0.872 +/- 0.025 | 0.888 +/- 0.005 |
+| AUC, referable DR (grade >= 2) | 0.983 +/- 0.002 | 0.983 +/- 0.003 |
+| Recall, No DR (0) | 0.940 +/- 0.049 | 0.968 +/- 0.005 |
+| Recall, Mild (1) | **0.435 +/- 0.133** | 0.347 +/- 0.018 |
+| Recall, Moderate (2) | 0.866 +/- 0.013 | 0.881 +/- 0.017 |
+| Recall, Severe (3) | 0.571 +/- 0.125 | 0.590 +/- 0.016 |
+| Recall, PDR (4) | 0.818 +/- 0.026 | 0.830 +/- 0.004 |
+
+Reading: focal loss gives a small gain in QWK (+0.009, about one standard deviation), accuracy and macro-F1, in the same direction as on validation (+0.007), and much lower seed-to-seed variance.
+It does not help the rarest classes: Mild recall is lower (0.347 vs 0.435, as on validation) and the Severe difference is within the baseline's spread.
+Seed-42 confusion matrix (rows true, columns predicted): Mild images are mostly called No DR (32) or Moderate (31); only 32 of 95 are called Mild.
+Validation to test shows no sign of over-selection on validation (g4: 0.904 -> 0.911, baseline: 0.897 -> 0.902).
+Class weighting (g1), which gave the best rare-class recall on validation, was not declared as a winner and is therefore not evaluated on the test split.
+
 ## Reproducing a table row
 
 Every run folder contains the config that produced it. To redo a run: `python -m src.train --config outputs/runs/<run>/config.yaml --force`.

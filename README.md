@@ -147,7 +147,7 @@ This is a thesis codebase, so it is kept deliberately small. The experimental de
 | Track | Winner | Val main metric | Why (one or two sentences: which strategy rescued the rare class / lesion?) |
 |---|---|---|---|
 | A, grading | **g4_focal** | QWK 0.904 +/- 0.005 (3 seeds; baseline 0.897 +/- 0.006) | Highest mean validation QWK under the pre-declared rule, but the gain over the baseline is only about one standard deviation. Class weighting (g1) gave the best Severe recall (0.611 vs 0.556) at slightly lower QWK, while focal loss lowered Mild recall (0.355 vs 0.450). The samplers (g2, g3, g5) did not beat the baseline on QWK; g5 almost never predicts Mild or Severe (likely because strong augmentation was applied to the minority classes only, so augmentation itself became a cue; not verified). |
-| B, segmentation | **s1_weighted_bce** (provisional until the optional combined run s6 is evaluated) | mean AUPR 0.519 +/- 0.004 (3 seeds; baseline 0.444 +/- 0.029) | Highest mean validation AUPR, by more than one standard deviation over s4. The gain comes from MA (0.327 vs 0.055); weighted BCE lowers HE (0.497 vs 0.566) and leaves EX unchanged. Dice (s2) and BCE+Dice (s3) were below the baseline (single seed). |
+| B, segmentation | **s1_weighted_bce** | mean AUPR 0.519 +/- 0.004 (3 seeds; baseline 0.444 +/- 0.029) | Highest mean validation AUPR, by more than one standard deviation over s4. The gain comes from MA (0.327 vs 0.055); weighted BCE lowers HE (0.497 vs 0.566) and leaves EX unchanged. Dice (s2) and BCE+Dice (s3) were below the baseline (single seed). |
 
 ### Validation results (mean +/- std over seeds 42, 43, 44)
 
@@ -193,6 +193,33 @@ It does not help the rarest classes: Mild recall is lower (0.347 vs 0.435, as on
 Seed-42 confusion matrix (rows true, columns predicted): Mild images are mostly called No DR (32) or Moderate (31); only 32 of 95 are called Mild.
 Validation to test shows no sign of over-selection on validation (g4: 0.904 -> 0.911, baseline: 0.897 -> 0.902).
 Class weighting (g1), which gave the best rare-class recall on validation, was not declared as a winner and is therefore not evaluated on the test split.
+
+### Test results, Track B segmentation (official DDR test split, 225 images at 1024 px; mean +/- std over seeds 42, 43, 44)
+
+Winner `s1_weighted_bce` and baseline `s0_baseline`, each scored once per run on the test split. The optional combined run (s6) was not evaluated on test.
+
+| AUPR | s0_baseline | s1_weighted_bce (winner) |
+|---|---|---|
+| **Mean AUPR (main)** | 0.308 +/- 0.034 | **0.342 +/- 0.019** |
+| EX | 0.582 +/- 0.007 | 0.585 +/- 0.010 |
+| HE | 0.424 +/- 0.052 | 0.351 +/- 0.082 |
+| MA | 0.035 +/- 0.008 | **0.170 +/- 0.023** |
+| SE | 0.193 +/- 0.096 | 0.261 +/- 0.097 |
+
+| Dice / IoU at threshold 0.5 | s0_baseline | s1_weighted_bce (winner) |
+|---|---|---|
+| Mean Dice | 0.176 +/- 0.035 | 0.265 +/- 0.007 |
+| Mean IoU | 0.115 +/- 0.019 | 0.161 +/- 0.005 |
+| Dice EX | 0.523 +/- 0.042 | 0.473 +/- 0.023 |
+| Dice HE | 0.182 +/- 0.172 | 0.321 +/- 0.042 |
+| Dice MA | 0.000 +/- 0.000 | 0.106 +/- 0.012 |
+| Dice SE | 0.000 +/- 0.000 | 0.158 +/- 0.006 |
+
+Reading: weighted BCE improves mean AUPR on test (+0.034), but the gain is much smaller than on validation (+0.075) and is only 1-2 standard deviations.
+The robust effect is on the smallest lesion: MA AUPR rises about five-fold (0.035 -> 0.170), well outside the seed spread, and at threshold 0.5 the baseline never detects MA or SE (Dice 0.000) while the winner does (0.106, 0.158).
+EX is unchanged in AUPR (and lower in Dice, i.e. more false positives); HE is lower in AUPR (0.424 -> 0.351) but the spread is large; the SE gain is within the spread.
+Dice at a fixed threshold favours weighted BCE because the loss shifts predicted probabilities upwards; AUPR is threshold-free and is the fairer comparison.
+Validation to test: all scores fall for both models (winner 0.519 -> 0.342, baseline 0.444 -> 0.308; SE 0.648 -> 0.261), so the drop is not specific to the selected strategy. It indicates that the test split is harder or differently distributed (or validation is small, 149 images) rather than over-selection of S1.
 
 ## Reproducing a table row
 

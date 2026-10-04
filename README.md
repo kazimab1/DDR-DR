@@ -12,6 +12,7 @@ the validation split, and evaluates it **once** on the untouched test split and 
 
 > **New here? Follow [`GUIDE.md`](GUIDE.md)**, the step-by-step walkthrough from empty folder to thesis tables.
 > Running on Kaggle notebooks? Use [`KAGGLE_GUIDE.md`](KAGGLE_GUIDE.md) instead.
+> Winners frozen? Test the grading winner with [`TEST_GRADING.md`](TEST_GRADING.md).
 
 ## Quick start
 
@@ -133,11 +134,11 @@ This is a thesis codebase, so it is kept deliberately small. The experimental de
 ## Decision log (fill in during Phase 1, then commit)
 
 - [ ] **Kaggle versions confirmed** (counts below may differ from the published OIA-DDR numbers):
-  grading images: ____ (train ____ / val ____ / test ____) &nbsp;|&nbsp; segmentation images: ____ (train ____ / val ____ / test ____)
-- [ ] **Ungradable (class 5):** dropped for grading (default in `prepare.py`), so Track A is a 5-class problem. Number removed: ____
-- [ ] **Splits:** official folders used as-is / one stratified 70/15/15 split (seed 42). Which one: ____
+  grading images: 12,522 after dropping ungradable (train 8,765 / val 1,878 / test 1,879) &nbsp;|&nbsp; segmentation images: 757 (train 383 / val 149 / test 225)
+- [ ] **Ungradable (class 5):** dropped for grading (default in `prepare.py`), so Track A is a 5-class problem. Number removed: about 1,151 (13,673 published minus 12,522 kept; confirm in the `prepare` log)
+- [ ] **Splits:** official folders used as-is / one stratified 70/15/15 split (seed 42). Which one: **grading = one stratified 70/15/15 split (seed 42)**, because the Kaggle copy has no official split, so grading test numbers are not directly comparable to published results on the official DDR test set; the file names carry no patient ID, so patient-level leakage between splits cannot be ruled out. **Segmentation = official split** (383 / 149 / 225).
 - [ ] **Already preprocessed?** Grading set image size ____ ; black borders cropped? ____ (`prepare.py` crops again, which is harmless on already-cropped images)
-- [ ] **Overlap between tracks:** `prepare.py segmentation` prints how many segmentation *test* images are also in grading train/val: ____ . It only matters if you later combine the tracks.
+- [ ] **Overlap between tracks:** `prepare.py segmentation` prints how many segmentation *test* images are also in grading train/val: **194 of 225** (755 of the 757 segmentation images exist in the grading set at all). It only matters if you later combine the tracks.
 - [ ] **Preprocessing sizes:** grading 512 px, segmentation 1024 px (train on 512 px crops; MA lesions vanish when shrunk)
 - [ ] **`pos_weight` (S1):** softened by `pos_weight_power: 0.5` and capped at 100, because the literal pixel ratio is in the hundreds to thousands. Printed at the start of the S1 run: ____
 
@@ -145,8 +146,31 @@ This is a thesis codebase, so it is kept deliberately small. The experimental de
 
 | Track | Winner | Val main metric | Why (one or two sentences: which strategy rescued the rare class / lesion?) |
 |---|---|---|---|
-| A, grading | | | |
-| B, segmentation | | | |
+| A, grading | **g4_focal** | QWK 0.904 +/- 0.005 (3 seeds; baseline 0.897 +/- 0.006) | Highest mean validation QWK under the pre-declared rule, but the gain over the baseline is only about one standard deviation. Class weighting (g1) gave the best Severe recall (0.611 vs 0.556) at slightly lower QWK, while focal loss lowered Mild recall (0.355 vs 0.450). The samplers (g2, g3, g5) did not beat the baseline on QWK; g5 almost never predicts Mild or Severe (likely because strong augmentation was applied to the minority classes only, so augmentation itself became a cue; not verified). |
+| B, segmentation | **s1_weighted_bce** (provisional until the optional combined run s6 is evaluated) | mean AUPR 0.519 +/- 0.004 (3 seeds; baseline 0.444 +/- 0.029) | Highest mean validation AUPR, by more than one standard deviation over s4. The gain comes from MA (0.327 vs 0.055); weighted BCE lowers HE (0.497 vs 0.566) and leaves EX unchanged. Dice (s2) and BCE+Dice (s3) were below the baseline (single seed). |
+
+### Validation results (mean +/- std over seeds 42, 43, 44)
+
+**Track A, grading** (main metric QWK)
+
+| Run | QWK | Mild recall | Severe recall |
+|---|---|---|---|
+| g4_focal | 0.904 +/- 0.005 | 0.355 +/- 0.033 | 0.546 +/- 0.042 |
+| g0_baseline | 0.897 +/- 0.006 | 0.450 +/- 0.165 | 0.556 +/- 0.056 |
+| g1_class_weights | 0.893 +/- 0.009 | 0.479 +/- 0.043 | 0.611 +/- 0.028 |
+
+Single seed (42) only: g2_oversample 0.899, g5_oversample_aug 0.896, g3_undersample 0.890.
+
+**Track B, segmentation** (main metric mean AUPR)
+
+| Run | Mean AUPR | EX | HE | MA | SE |
+|---|---|---|---|---|---|
+| s1_weighted_bce | 0.519 +/- 0.004 | 0.602 +/- 0.027 | 0.497 +/- 0.033 | 0.327 +/- 0.032 | 0.648 +/- 0.039 |
+| s4_tversky | 0.501 +/- 0.014 | 0.589 +/- 0.016 | 0.532 +/- 0.031 | 0.296 +/- 0.004 | 0.587 +/- 0.033 |
+| s5_lesion_crops | 0.457 +/- 0.015 | 0.588 +/- 0.021 | 0.530 +/- 0.049 | 0.152 +/- 0.037 | 0.558 +/- 0.019 |
+| s0_baseline | 0.444 +/- 0.029 | 0.593 +/- 0.022 | 0.566 +/- 0.057 | 0.055 +/- 0.014 | 0.562 +/- 0.084 |
+
+Single seed (42) only: s2_dice 0.370, s3_bce_dice 0.360.
 
 ## Reproducing a table row
 

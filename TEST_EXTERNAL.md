@@ -12,6 +12,8 @@ Run the **frozen** winners on datasets they have never seen, to show whether the
 * Each run is scored once per external dataset (`evaluate.py` refuses to overwrite `<tag>_metrics.json`).
 * Report what you get. A large drop from DDR to external is a finding to discuss, not something to hide.
 
+> **Shortcut:** `notebooks/kaggle_external.ipynb` does the whole setup below for IDRiD (and optionally APTOS) for one track: import it, add the inputs listed in its first cell, set `TRACK`, Run All.
+
 Everything is done by one script, `scripts/external_eval.py`. It is in the repository, so the Kaggle notebook already has it after `git clone`;
 nothing needs to be uploaded separately. For one dataset and one track it: preprocesses the external images like DDR, evaluates the winner and the baseline
 for every seed (finished ones are skipped), and prints a mean ± std table with the change from the DDR test split. It writes `outputs/external_<track>_<name>.csv`.

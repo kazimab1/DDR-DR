@@ -13,7 +13,7 @@ the validation split, and evaluates it **once** on the untouched test split and 
 > **New here? Follow [`GUIDE.md`](GUIDE.md)**, the step-by-step walkthrough from empty folder to thesis tables.
 > Running on Kaggle notebooks? Use [`KAGGLE_GUIDE.md`](KAGGLE_GUIDE.md) instead.
 > Winners frozen? Test the grading winner with [`TEST_GRADING.md`](TEST_GRADING.md), the segmentation winner with [`TEST_SEGMENTATION.md`](TEST_SEGMENTATION.md).
-> Then the external check: [`TEST_EXTERNAL.md`](TEST_EXTERNAL.md) (uses `scripts/external_eval.py`).
+> Then the external check: [`TEST_EXTERNAL.md`](TEST_EXTERNAL.md) (uses `scripts/external_eval.py`; ready-made Kaggle notebook: `notebooks/kaggle_external.ipynb`).
 
 ## Quick start
 

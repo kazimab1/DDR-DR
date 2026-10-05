@@ -20,7 +20,7 @@ for every seed (finished ones are skipped), and prints a mean ± std table with 
 
 | Dataset | Track | Labels | Where to get it |
 |---|---|---|---|
-| **IDRiD** | grading **and** segmentation | grades 0-4; masks for EX, HE, MA, SE | IEEE DataPort / the IDRiD challenge page (registration). Strongest choice: same four lesion types as DDR. About 516 graded images and 81 with masks |
+| **IDRiD** | grading **and** segmentation | grades 0-4 (516 images); masks for EX, HE, MA, SE (81 images) | On Kaggle: `dankok/diabetic-retinopathy-image-dataset` (one dataset, both parts: `Disease_Grading` and `Segmentation`). Original source: IDRiD challenge (India), independent of DDR (China). Strongest choice: same four lesion types as DDR |
 | **APTOS 2019** | grading | grades 0-4 | Kaggle competition `aptos2019-blindness-detection` (join it and accept the rules, then Add Input). Only `train.csv` has labels (3,662 images) |
 | **Messidor-2** | grading | adjudicated grades 0-4 | Request/download from the dataset owners; labels come in a separate sheet, convert it to a CSV with columns `id_code,diagnosis` |
 
@@ -73,17 +73,21 @@ Folder layouts differ, so look before running:
 `--labels` is required here. The competition folder also contains `sample_submission.csv` with a dummy all-zero `diagnosis` column, and without
 `--labels` those unlabeled test images would be silently treated as grade 0.
 
-### Grading: IDRiD
+### Grading: IDRiD (Kaggle dataset `dankok/diabetic-retinopathy-image-dataset`)
 
-Point `--src` at the **disease grading** part only, and pass both label files (training and testing labels). Adjust the paths to what `find` shows:
+Add that dataset as an input. In the notebook it is mounted at `/kaggle/input/diabetic-retinopathy-image-dataset` (check with `!ls /kaggle/input`).
+Use only the `Disease_Grading` part, and pin the two label files in `Groundtruths` (training and testing labels) with `--labels`:
 
 ```python
-!python scripts/external_eval.py --track grading --name idrid \
-    --src "/kaggle/input/<idrid>/B. Disease Grading" \
-    --labels "/kaggle/input/<idrid>/B. Disease Grading/2. Groundtruths/a. IDRiD_Disease Grading_Training Labels.csv" \
-             "/kaggle/input/<idrid>/B. Disease Grading/2. Groundtruths/b. IDRiD_Disease Grading_Testing Labels.csv" \
-    --winner g4_focal
+base = "/kaggle/input/diabetic-retinopathy-image-dataset/Disease_Grading"
+labels = sorted(glob.glob(f"{base}/Groundtruths/*.csv"))
+print(labels)                      # expect exactly two CSV files: training labels and testing labels
+sh(f"python scripts/external_eval.py --track grading --name idrid --src '{base}' "
+   f"--labels {' '.join(repr(l) for l in labels)} --winner g4_focal")
 ```
+
+All 516 images (413 training + 103 testing in IDRiD's own split) are used as one external test set. The class mix differs a lot from DDR
+(roughly: many more Severe and PDR images, only about 25 Mild), so recall for Mild is very noisy here; look at QWK and the referable-DR AUC first.
 
 ### Grading: Messidor-2
 
@@ -95,15 +99,23 @@ Point `--src` at the **disease grading** part only, and pass both label files (t
 ```
 The CSV needs an image-name column and a grade column (`id_code,diagnosis` works). Images may be `.tif`, `.png` or `.jpg`.
 
-### Segmentation: IDRiD
+### Segmentation: IDRiD (same Kaggle dataset)
 
-Point `--src` at the **A. Segmentation** part. Masks named `IDRiD_01_MA.tif` (or in folders such as `1. Microaneurysms`) are recognised; optic-disc masks are ignored:
+Use the `Segmentation` part of the same dataset. Images are in `Segmentation/Original_Images/{Training Set,Testing Set}` and the masks in
+`Segmentation/Segmentation_Groundtruths/{Training Set,Testing Set}/<lesion folder>/IDRiD_xx_MA.tif`. The folder names (Microaneurysms, Haemorrhages,
+Hard Exudates, Soft Exudates) are recognised, and the Optic Disc masks are ignored:
 
 ```python
-!python scripts/external_eval.py --track segmentation --name idrid \
-    --src "/kaggle/input/<idrid>/A. Segmentation" \
-    --winner s1_weighted_bce
+sh("python scripts/external_eval.py --track segmentation --name idrid "
+   "--src '/kaggle/input/diabetic-retinopathy-image-dataset/Segmentation' --winner s1_weighted_bce")
 ```
+
+All 81 images (54 training + 27 testing) are used. Soft-exudate masks exist only for the images that contain SE; images without an SE mask file are treated as having no SE.
+`prepare` prints how many images have a mask for each lesion: check these counts before trusting the AUPR of a lesion with few examples.
+
+> The dataset `pallavidi/dr-segmentation` is another copy of the IDRiD segmentation images (folders `1. Original images`, `2. All Segmentation Groundtruths`).
+> It also works with the same command (`--src` at its `Dr_dataset` folder), but it is the same data, so using both would not add anything.
+> Cite the original IDRiD paper: P. Porwal et al., *Indian Diabetic Retinopathy Image Dataset (IDRiD)*, Medical Image Analysis, 2020 (check the dataset page for the exact licence).
 
 Each command prints, for the winner and the baseline, every metric on DDR test and on the external set, with the change, then a summary of the main metric
 (QWK for grading, mean AUPR for segmentation). Run one command per dataset.

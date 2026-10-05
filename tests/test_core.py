@@ -70,6 +70,9 @@ def test_lesion_name_detection():
     assert lesion_of(Path("seg/train/label/MA/007-1.tif")) == ("MA", "007-1")
     assert lesion_of(Path("IDRiD_01_HE.tif")) == ("HE", "IDRiD_01")
     assert lesion_of(Path("a/3. Hard Exudates/IDRiD_01.tif")) == ("EX", "IDRiD_01")
+    assert lesion_of(Path("seg/Training Set/Microaneurysms/IDRiD_01_MA.tif")) == ("MA", "IDRiD_01")   # folder + suffix
+    assert lesion_of(Path("Dr_dataset/2. Groundtruths/a. Training Set/1. Microaneurysm/IDRiD_01_MA.tif")) == ("MA", "IDRiD_01")
+    assert lesion_of(Path("seg/Training Set/Haemorrhages/IDRiD_07_HE.tif")) == ("HE", "IDRiD_07")
     assert lesion_of(Path("IDRiD_01_OD.tif")) is None and lesion_of(Path("train/image/007-1.jpg")) is None
 
 

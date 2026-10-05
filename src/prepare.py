@@ -56,7 +56,9 @@ def lesion_of(path):
     folder = path.parent.name.lower()
     for code, words in LESION_WORDS.items():
         if folder == code.lower() or any(w in folder for w in words):
-            return code, path.stem
+            head, _, tail = path.stem.rpartition("_")
+            # folder AND suffix (IDRiD: Microaneurysms/IDRiD_01_MA.tif): the image name is without the suffix
+            return code, head if head and tail.upper() == code else path.stem
     head, _, tail = path.stem.rpartition("_")
     if head and tail.upper() in LESIONS:
         return tail.upper(), head

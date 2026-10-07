@@ -222,6 +222,30 @@ EX is unchanged in AUPR (and lower in Dice, i.e. more false positives); HE is lo
 Dice at a fixed threshold favours weighted BCE because the loss shifts predicted probabilities upwards; AUPR is threshold-free and is the fairer comparison.
 Validation to test: all scores fall for both models (winner 0.519 -> 0.342, baseline 0.444 -> 0.308; SE 0.648 -> 0.261), so the drop is not specific to the selected strategy. It indicates that the test split is harder or differently distributed (or validation is small, 149 images) rather than over-selection of S1.
 
+### External results, Track A grading (frozen models, no retraining; mean +/- std over seeds 42, 43, 44)
+
+IDRiD: 516 graded images (a different hospital and camera, India). APTOS 2019: the labelled training images of the Kaggle competition (`train.csv`; the competition test labels are not public).
+DDR test values are those of the table above (the external-evaluation table prints the winner's DDR QWK as 0.912 because of rounding).
+
+| Metric | g4_focal DDR test | g4_focal IDRiD | g4_focal APTOS | g0_baseline DDR test | g0_baseline IDRiD | g0_baseline APTOS |
+|---|---|---|---|---|---|---|
+| **QWK (main)** | 0.911 | **0.562 +/- 0.009** | **0.770 +/- 0.023** | 0.902 | 0.513 +/- 0.046 | 0.763 +/- 0.046 |
+| Macro-F1 | 0.751 | 0.479 +/- 0.006 | 0.448 +/- 0.017 | 0.734 | 0.438 +/- 0.041 | 0.438 +/- 0.029 |
+| Accuracy | 0.888 | 0.546 +/- 0.012 | 0.630 +/- 0.046 | 0.872 | 0.494 +/- 0.046 | 0.595 +/- 0.104 |
+| AUC, referable DR | 0.983 | 0.875 +/- 0.005 | 0.954 +/- 0.006 | 0.983 | 0.861 +/- 0.020 | 0.943 +/- 0.007 |
+| Recall, No DR (0) | 0.968 | 0.436 +/- 0.033 | 0.688 +/- 0.094 | 0.940 | 0.337 +/- 0.117 | 0.620 +/- 0.218 |
+| Recall, Mild (1) | 0.347 | 0.290 +/- 0.025 | 0.043 +/- 0.010 | 0.435 | 0.333 +/- 0.109 | 0.060 +/- 0.054 |
+| Recall, Moderate (2) | 0.881 | 0.869 +/- 0.014 | 0.901 +/- 0.009 | 0.866 | 0.836 +/- 0.022 | 0.880 +/- 0.024 |
+| Recall, Severe (3) | 0.590 | 0.399 +/- 0.057 | 0.242 +/- 0.034 | 0.571 | 0.354 +/- 0.032 | 0.256 +/- 0.030 |
+| Recall, PDR (4) | 0.830 | 0.382 +/- 0.051 | 0.342 +/- 0.022 | 0.818 | 0.422 +/- 0.094 | 0.373 +/- 0.074 |
+
+Reading (Q3, generalisation):
+* Both models lose a lot outside DDR: QWK falls from about 0.91 to 0.56 on IDRiD and to 0.77 on APTOS. This is a domain-shift finding to report, not something to tune away.
+* The coarse, clinically important decision transfers far better than the five-way grade: referable-DR AUC stays at 0.88 (IDRiD) and 0.95 (APTOS), against 0.98 on DDR. Moderate recall holds (0.84-0.90); the other grades fall, most of all No DR on IDRiD (0.44 for the winner, 0.34 for the baseline) and Mild on APTOS (about 0.05).
+* Winner vs baseline: on IDRiD focal loss is ahead (QWK +0.049, about one baseline standard deviation) and much more stable across seeds (std 0.009 vs 0.046); on APTOS the QWK difference (+0.007) is far inside the spread. The advantage seen on DDR is therefore small and not robust outside it; the most consistent benefit is lower variance.
+* Caveats: IDRiD has few Mild images (about 25), so Mild recall there is very noisy; class mix and labelling protocol differ between datasets. The likely causes of the drop (camera, colour, image quality, label protocol) were not investigated.
+* The external check for Track B (IDRiD segmentation) is still to do.
+
 ## Reproducing a table row
 
 Every run folder contains the config that produced it. To redo a run: `python -m src.train --config outputs/runs/<run>/config.yaml --force`.

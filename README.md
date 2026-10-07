@@ -244,7 +244,30 @@ Reading (Q3, generalisation):
 * The coarse, clinically important decision transfers far better than the five-way grade: referable-DR AUC stays at 0.88 (IDRiD) and 0.95 (APTOS), against 0.98 on DDR. Moderate recall holds (0.84-0.90); the other grades fall, most of all No DR on IDRiD (0.44 for the winner, 0.34 for the baseline) and Mild on APTOS (about 0.05).
 * Winner vs baseline: on IDRiD focal loss is ahead (QWK +0.049, about one baseline standard deviation) and much more stable across seeds (std 0.009 vs 0.046); on APTOS the QWK difference (+0.007) is far inside the spread. The advantage seen on DDR is therefore small and not robust outside it; the most consistent benefit is lower variance.
 * Caveats: IDRiD has few Mild images (about 25), so Mild recall there is very noisy; class mix and labelling protocol differ between datasets. The likely causes of the drop (camera, colour, image quality, label protocol) were not investigated.
-* The external check for Track B (IDRiD segmentation) is still to do.
+
+### External results, Track B segmentation (frozen models, no retraining; IDRiD, 81 images; mean +/- std over seeds 42, 43, 44)
+
+| AUPR | s1_weighted_bce DDR test | s1_weighted_bce IDRiD | s0_baseline DDR test | s0_baseline IDRiD |
+|---|---|---|---|---|
+| **Mean AUPR (main)** | 0.342 | **0.559 +/- 0.002** | 0.308 | 0.470 +/- 0.019 |
+| EX | 0.585 | 0.788 +/- 0.026 | 0.582 | 0.785 +/- 0.018 |
+| HE | 0.351 | 0.568 +/- 0.009 | 0.424 | 0.589 +/- 0.066 |
+| MA | 0.170 | **0.345 +/- 0.022** | 0.035 | 0.060 +/- 0.008 |
+| SE | 0.260 | 0.535 +/- 0.010 | 0.193 | 0.445 +/- 0.101 |
+
+| Dice / IoU at threshold 0.5 | s1_weighted_bce DDR test | s1_weighted_bce IDRiD | s0_baseline DDR test | s0_baseline IDRiD |
+|---|---|---|---|---|
+| Mean Dice | 0.264 | 0.430 +/- 0.015 | 0.176 | 0.225 +/- 0.049 |
+| Mean IoU | 0.161 | 0.282 +/- 0.011 | 0.115 | 0.160 +/- 0.028 |
+| Dice EX | 0.473 | 0.602 +/- 0.034 | 0.523 | 0.656 +/- 0.050 |
+| Dice HE | 0.321 | 0.436 +/- 0.047 | 0.182 | 0.244 +/- 0.230 |
+| Dice MA | 0.106 | 0.250 +/- 0.038 | 0.000 | 0.000 +/- 0.000 |
+| Dice SE | 0.158 | 0.431 +/- 0.026 | 0.000 | 0.001 +/- 0.001 |
+
+Reading (Q3, generalisation):
+* The main finding of Track B replicates on independent data. Weighted BCE beats the baseline on IDRiD by +0.089 mean AUPR (0.559 vs 0.470), a clearer margin than on the DDR test split (+0.034), with a very small spread across seeds (0.002).
+* The gain again comes from the smallest lesion: MA AUPR 0.345 vs 0.060 (about six-fold), and at threshold 0.5 the baseline still never detects MA (Dice 0.000) while the winner does (0.250). EX is unchanged; the HE and SE differences are within the baseline's spread.
+* Absolute scores on IDRiD are higher than on the DDR test split for both models, the opposite of Track A. This should not be read as better generalisation: IDRiD differs in image quality, annotation protocol and lesion prevalence (AUPR depends on prevalence), it has only 81 images, and soft-exudate masks exist only for the images that contain SE. It is consistent with the DDR test split being the harder one; the reason was not investigated.
 
 ## Reproducing a table row
 
